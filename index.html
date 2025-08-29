@@ -1,0 +1,298 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Reloj Digital Elegante</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;700;900&family=JetBrains+Mono:wght@400;600;800&display=swap');
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            background: transparent;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-family: 'Inter', sans-serif;
+            overflow: hidden;
+        }
+        
+        .clock-container {
+            background: transparent;
+            border-radius: 24px;
+            padding: 40px 60px;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+            transition: all 0.3s ease;
+        }
+        
+        .clock-container::before {
+            display: none;
+        }
+        
+        @keyframes shimmer {
+            0% { transform: translateX(-100%) translateY(-100%) rotate(45deg); }
+            100% { transform: translateX(100%) translateY(100%) rotate(45deg); }
+        }
+        
+        .time-display {
+            position: relative;
+            z-index: 2;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 4rem;
+            font-weight: 800;
+            margin-bottom: 20px;
+            letter-spacing: 2px;
+            transition: color 0.3s ease;
+        }
+        
+        /* Tema claro por defecto */
+        body.light-theme .time-display {
+            color: #2d3748;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+        
+        /* Tema oscuro */
+        body.dark-theme .time-display {
+            color: #f7fafc;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+        }
+        
+        .seconds {
+            font-size: 2.5rem;
+            opacity: 0.8;
+            margin-left: 10px;
+        }
+        
+        .date-display {
+            position: relative;
+            z-index: 2;
+            font-family: 'Inter', sans-serif;
+            font-size: 1.1rem;
+            font-weight: 400;
+            letter-spacing: 1px;
+            text-transform: capitalize;
+            transition: color 0.3s ease;
+        }
+        
+        /* Tema claro por defecto */
+        body.light-theme .date-display {
+            color: #718096;
+            text-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+        }
+        
+        /* Tema oscuro */
+        body.dark-theme .date-display {
+            color: #cbd5e0;
+            text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+        }
+        
+        .ampm {
+            font-size: 1.5rem;
+            font-weight: 600;
+            opacity: 0.8;
+            margin-left: 15px;
+            padding: 5px 12px;
+            border-radius: 20px;
+            transition: all 0.3s ease;
+        }
+        
+        /* Tema claro por defecto */
+        body.light-theme .ampm {
+            background: rgba(45, 55, 72, 0.1);
+            color: #4a5568;
+        }
+        
+        /* Tema oscuro */
+        body.dark-theme .ampm {
+            background: rgba(255, 255, 255, 0.1);
+            color: #e2e8f0;
+        }
+        
+        .time-container {
+            display: flex;
+            align-items: baseline;
+            justify-content: center;
+            gap: 5px;
+        }
+        
+        .digit {
+            display: inline-block;
+            transition: all 0.3s ease;
+        }
+        
+        .digit.flip {
+            animation: flipDigit 0.6s ease-in-out;
+        }
+        
+        @keyframes flipDigit {
+            0% { transform: rotateY(0deg); }
+            50% { transform: rotateY(90deg); }
+            100% { transform: rotateY(0deg); }
+        }
+        
+        .separator {
+            animation: blink 2s infinite;
+            opacity: 1;
+        }
+        
+        @keyframes blink {
+            0%, 50% { opacity: 1; }
+            51%, 100% { opacity: 0.3; }
+        }
+        
+        @media (max-width: 768px) {
+            .clock-container {
+                padding: 30px 40px;
+                margin: 20px;
+            }
+            
+            .time-display {
+                font-size: 3rem;
+            }
+            
+            .seconds {
+                font-size: 2rem;
+            }
+            
+            .date-display {
+                font-size: 1rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="clock-container">
+        <div class="time-container">
+            <div class="time-display" id="timeDisplay"></div>
+        </div>
+        <div class="date-display" id="dateDisplay"></div>
+    </div>
+
+    <script>
+        let previousTime = '';
+        
+        function updateClock() {
+            const now = new Date();
+            
+            // Formatear hora
+            let hours = now.getHours();
+            const minutes = now.getMinutes();
+            const seconds = now.getSeconds();
+            const ampm = hours >= 12 ? 'PM' : 'AM';
+            
+            // Convertir a formato 12 horas
+            hours = hours % 12;
+            hours = hours ? hours : 12; // 0 debe ser 12
+            
+            // Agregar ceros a la izquierda
+            const hoursStr = hours.toString().padStart(2, '0');
+            const minutesStr = minutes.toString().padStart(2, '0');
+            const secondsStr = seconds.toString().padStart(2, '0');
+            
+            // Crear el display de tiempo
+            const currentTime = `${hoursStr}:${minutesStr}`;
+            const timeDisplay = document.getElementById('timeDisplay');
+            
+            // Detectar cambios para animación
+            if (currentTime !== previousTime) {
+                timeDisplay.innerHTML = `
+                    <span class="digit">${hoursStr[0]}</span><span class="digit">${hoursStr[1]}</span><span class="separator">:</span><span class="digit">${minutesStr[0]}</span><span class="digit">${minutesStr[1]}</span><span class="seconds">${secondsStr}</span><span class="ampm">${ampm}</span>
+                `;
+                previousTime = currentTime;
+            } else {
+                // Solo actualizar segundos
+                const secondsElement = timeDisplay.querySelector('.seconds');
+                if (secondsElement) {
+                    secondsElement.textContent = secondsStr;
+                }
+            }
+            
+            // Formatear fecha
+            const options = { 
+                weekday: 'long', 
+                year: 'numeric', 
+                month: 'long', 
+                day: 'numeric' 
+            };
+            const dateString = now.toLocaleDateString('es-ES', options);
+            document.getElementById('dateDisplay').textContent = dateString;
+        }
+        
+        // Función para detectar el tema
+        function detectTheme() {
+            // Crear un elemento temporal para detectar el color de fondo
+            const testElement = document.createElement('div');
+            testElement.style.position = 'absolute';
+            testElement.style.top = '-9999px';
+            testElement.style.width = '1px';
+            testElement.style.height = '1px';
+            document.body.appendChild(testElement);
+            
+            // Obtener el color de fondo calculado
+            const bgColor = window.getComputedStyle(testElement).backgroundColor;
+            const parentBgColor = window.getComputedStyle(document.body).backgroundColor;
+            
+            // Limpiar
+            document.body.removeChild(testElement);
+            
+            // Si el fondo es transparente, intentar detectar desde el parent
+            let colorToCheck = bgColor;
+            if (bgColor === 'rgba(0, 0, 0, 0)' || bgColor === 'transparent') {
+                colorToCheck = parentBgColor;
+            }
+            
+            // Si aún es transparente, usar detección por media query
+            if (colorToCheck === 'rgba(0, 0, 0, 0)' || colorToCheck === 'transparent') {
+                if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
+                    return 'dark';
+                } else {
+                    return 'light';
+                }
+            }
+            
+            // Extraer valores RGB
+            const rgb = colorToCheck.match(/\d+/g);
+            if (rgb) {
+                const [r, g, b] = rgb.map(Number);
+                // Calcular luminancia
+                const luminance = (0.299 * r + 0.587 * g + 0.114 * b) / 255;
+                return luminance > 0.5 ? 'light' : 'dark';
+            }
+            
+            return 'light'; // Default
+        }
+        
+        // Aplicar tema
+        function applyTheme() {
+            const theme = detectTheme();
+            document.body.className = theme + '-theme';
+        }
+        
+        // Inicializar y actualizar cada segundo
+        applyTheme();
+        updateClock();
+        setInterval(() => {
+            updateClock();
+            applyTheme(); // Redetectar tema por si cambia
+        }, 1000);
+        
+        // Efecto de hover en el contenedor
+        const container = document.querySelector('.clock-container');
+        container.addEventListener('mouseenter', () => {
+            container.style.transform = 'scale(1.02)';
+        });
+        
+        container.addEventListener('mouseleave', () => {
+            container.style.transform = 'scale(1)';
+        });
+    </script>
+</body>
+</html>
